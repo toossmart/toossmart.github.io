@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Toossssmart</title>
+    <meta name="description" content="革命尚未成功，同志仍需努力">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* 主色调 - 类似 Linear/Vercel 的紫蓝色 */
+            --primary-color: #5e6ad2;
+            --primary-hover: #4f5bbb;
+            --primary-light: rgba(94, 106, 210, 0.1);
+
+            /* 文本颜色 */
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+
+            /* 背景颜色 */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+
+            /* 边框和阴影 */
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+            /* 代码颜色 */
+            --code-bg: #1e293b;
+            --code-text: #e2e8f0;
+
+            /* 字体 */
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", "JetBrains Mono", monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.75;
+            font-size: 15px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        /* 顶部导航 */
+        .navbar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 64px;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-logo a {
+            color: inherit;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+            padding: 4px 0;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            color: var(--primary-color);
+        }
+
+        /* 主布局 */
+        .main-layout {
+            max-width: 1400px;
+            margin: 64px auto 0;
+            padding: 40px 24px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            position: sticky;
+            top: 104px;
+            height: fit-content;
+        }
+
+        .profile-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .profile-name {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .profile-title {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .profile-bio {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .social-link {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .social-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            min-width: 0;
+        }
+
+        /* 文章列表 */
+        .article-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .article-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .article-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .article-card:hover::before {
+            opacity: 1;
+        }
+
+        .article-card a {
+            display: block;
+        }
+
+        .article-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+        }
+
+        .article-card-excerpt {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .article-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 16px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            font-family: var(--font-mono);
+        }
+
+        .article-card-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .article-card-tag {
+            font-size: 12px;
+            color: var(--primary-color);
+            background: var(--primary-light);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        /* 文章详情 */
+        .article-detail {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .article-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 24px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+        }
+
+        .article-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        /* Markdown样式 - 程序员风格 */
+        .markdown-body {
+            font-family: var(--font-sans);
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            margin-top: 32px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: -0.3px;
+        }
+
+        .markdown-body h1 {
+            font-size: 28px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .markdown-body h2 {
+            font-size: 24px;
+        }
+
+        .markdown-body h3 {
+            font-size: 20px;
+        }
+
+        .markdown-body p {
+            margin-bottom: 20px;
+        }
+
+        .markdown-body code {
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            color: var(--primary-color);
+        }
+
+        .markdown-body pre {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+            color: var(--code-text);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .markdown-body blockquote {
+            border-left: 3px solid var(--primary-color);
+            padding-left: 16px;
+            margin: 24px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+            background: var(--bg-secondary);
+            padding: 16px 16px 16px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .markdown-body li {
+            margin-bottom: 8px;
+            line-height: 1.7;
+        }
+
+        .markdown-body a {
+            color: var(--primary-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .markdown-body a:hover {
+            border-bottom-color: var(--primary-color);
+        }
+
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 24px 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 14px;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            padding: 12px 16px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        .markdown-body th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .markdown-body tr:nth-child(even) {
+            background: var(--bg-secondary);
+        }
+
+        /* 返回按钮 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-color);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 0;
+            margin-bottom: 24px;
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateX(-4px);
+        }
+
+        .back-link::before {
+            content: '←';
+            margin-right: 8px;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 32px 24px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+        }
+
+        .footer a {
+            color: var(--primary-color);
+        }
+
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .profile-card {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 24px;
+                align-items: center;
+            }
+
+            .avatar {
+                margin: 0;
+            }
+
+            .profile-name,
+            .profile-title {
+                text-align: left;
+            }
+
+            .profile-stats {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 16px;
+            }
+
+            .main-layout {
+                padding: 32px 16px;
+            }
+
+            .article-detail {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 22px;
+            }
+
+            .profile-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .avatar {
+                margin: 0 auto 16px;
+            }
+
+            .profile-name,
+            .profile-title {
+                text-align: center;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        /* 选中文本样式 */
+        ::selection {
+            background: var(--primary-light);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">Toossssmart</a>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="active">Blog</a>
+                <a href="about.html" class="">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-layout">
+        <!-- 左侧边栏 -->
+        <aside class="sidebar">
+            <div class="profile-card">
+                <div class="avatar">SM</div>
+                <h2 class="profile-name">smart</h2>
+                <p class="profile-title">Full Stack Developer</p>
+                <div class="profile-bio">
+                    革命尚未成功，同志仍需努力
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">5</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">2024</span>
+                        <span class="stat-label">Year</span>
+                    </div>
+                </div>
+                <div class="social-links">
+                    <a href="https://github.com/github.com/toossmart" class="social-link" title="GitHub">GH</a>
+                    <a href="https://twitter.com/" class="social-link" title="Twitter">TW</a>
+                    <a href="mailto:toossssmart@gmail.com" class="social-link" title="Email">@</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            
+Blog
+
+<h1 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; letter-spacing: -0.3px;">
+    Latest Posts
+</h1>
+
+
+<div class="article-list">
+    
+    <div class="article-card">
+        <a href="posts/Java-learning.html">
+            <h3 class="article-card-title">Java学习心得</h3>
+            <p class="article-card-excerpt">Java易混淆的知识点 DTO、Entity、VO ​ DTO在controller层接收前端传出的数据，在service层封装成Entity。如果是对数据库的增删改，那将Entity传入mapper层，执行INSERT/UPDATE，后在controller层返回Result.success()，如果是对数据库的查询操作，那将Entity转化为VO：作用：数据脱敏（去掉密码）、格式化（日期转字符...</p>
+            <div class="article-card-footer">
+                <div class="article-meta">
+                    <span>2026-02-1</span>
+                    
+                </div>
+                
+            </div>
+        </a>
+    </div>
+    
+    <div class="article-card">
+        <a href="posts/static-blog-advantages.html">
+            <h3 class="article-card-title">静态博客的优势</h3>
+            <p class="article-card-excerpt">静态博客的优势 静态博客正在变得越来越流行，它们相比传统的动态博客有很多优势。 什么是静态博客？ 静态博客是指由预先生成的 HTML 文件组成的网站，没有数据库和服务器端代码。所有页面在构建时生成，用户访问时直接返回静态文件。 静态博客的优势 1. 速度快 服务器无需执行任何代码 可以利用 CDN 缓存 页面加载时间短 2. 安全性高 没有数据库，杜绝 SQL 注入 没有动态脚本，减少攻击面 没有...</p>
+            <div class="article-card-footer">
+                <div class="article-meta">
+                    <span>2024-01-17</span>
+                    
+                </div>
+                
+            </div>
+        </a>
+    </div>
+    
+    <div class="article-card">
+        <a href="posts/python-learning.html">
+            <h3 class="article-card-title">技术分享：Python学习笔记</h3>
+            <p class="article-card-excerpt">Python 学习笔记 Python 是一种简单易学但功能强大的编程语言。 为什么选择 Python？ 1. 语法简洁 # 打印 Hello World print(&quot;Hello, World!&quot;) # 定义函数 def greet(name): return f&quot;Hello, {name}!&quot; print(greet(&quot;Python&quot;)...</p>
+            <div class="article-card-footer">
+                <div class="article-meta">
+                    <span>2024-01-16</span>
+                    
+                </div>
+                
+            </div>
+        </a>
+    </div>
+    
+    <div class="article-card">
+        <a href="posts/about.html">
+            <h3 class="article-card-title">关于我</h3>
+            <p class="article-card-excerpt">关于我 你好！欢迎来到我的个人博客。 我是谁 我是一名热爱技术的开发者，喜欢分享学习和工作过程中的心得体会。 技术栈 我主要使用以下技术： 编程语言：Python, JavaScript, Go Web开发：HTML, CSS, Vue.js, React 数据科学：NumPy, Pandas, TensorFlow 工具：Git, Docker, Linux 博客内容 在这个博客中，我会分享： ...</p>
+            <div class="article-card-footer">
+                <div class="article-meta">
+                    <span>2024-01-15</span>
+                    
+                </div>
+                
+            </div>
+        </a>
+    </div>
+    
+    <div class="article-card">
+        <a href="posts/welcome.html">
+            <h3 class="article-card-title">欢迎使用静态博客</h3>
+            <p class="article-card-excerpt">欢迎使用静态博客 这是一个简单的静态博客生成器，让你能够轻松创建和发布博客文章。 功能特点 使用 Markdown 编写文章 生成纯静态 HTML 知乎风格的设计 支持代码高亮 可以部署到任何静态网站托管服务 如何写文章 在 posts/ 目录下创建 .md 文件，例如： --- title: 你的文章标题 date: 2024-01-15 tags: [标签1, 标签2] --- # 文章内容 ...</p>
+            <div class="article-card-footer">
+                <div class="article-meta">
+                    <span>2024-01-15</span>
+                    
+                </div>
+                
+            </div>
+        </a>
+    </div>
+    
+</div>
+
+
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 <a href="index.html">smart</a>. Built with <span style="color: var(--primary-color);">♥</span> using Python & Jinja2</p>
+    </footer>
+</body>
+</html>
