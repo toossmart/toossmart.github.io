@@ -343,83 +343,18 @@
             background: var(--bg-secondary);
         }
 
-        /* --- 新版页脚样式 --- */
         .footer {
-            /* 重置旧样式 */
-            text-align: left; /* 改为左对齐 (配合 Flex 布局) */
+            text-align: center;
             padding: 32px 24px;
-            background: var(--bg-primary);
+            color: var(--text-tertiary);
+            font-size: 13px;
             border-top: 1px solid var(--border-color);
-            font-size: 14px;
+            background: var(--bg-primary);
         }
 
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between; /* 左右两端对齐 */
-            align-items: center;
-            flex-wrap: wrap; /* 移动端自动换行 */
-            gap: 16px;
-        }
-
-        /* 左侧版权 */
-        .footer-left {
-            color: var(--text-tertiary);
-            font-family: var(--font-mono);
-        }
-
-        .footer-left a:hover {
-            color: var(--primary-color);
-            text-decoration: underline;
-        }
-
-        /* 右侧友链 */
-        .footer-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .friends-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-right: 4px;
-            background: var(--bg-secondary);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .friend-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .friend-link:hover {
+        .footer a {
             color: var(--primary-color) !important;
-        }
-
-        .separator {
-            color: var(--border-color);
-            font-size: 12px;
-        }
-
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            .footer-content {
-                flex-direction: column; /* 上下排列 */
-                justify-content: center;
-                text-align: center;
-                gap: 20px;
-            }
-
-            .desktop-only {
-                display: none; /* 手机上隐藏 "Built with..." 保持简洁 */
-            }
+            border-bottom-color: var(--primary-color) !important;
         }
 
         @media (max-width: 1024px) {
@@ -592,7 +527,7 @@
         <div class="footer-content">
             <div class="footer-left">
                 &copy; 2026 <a href="../index.html">smart</a>.
-                <span class="desktop-only">有时间就要学习 <span style="color: var(--primary-color);">！</span> </span>
+                 <span class="desktop-only">Hexo <span style="color: var(--primary-color);">♥</span> <span>JinJia2</span></span>
             </div>
 
             
