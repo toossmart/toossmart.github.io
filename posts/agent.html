@@ -4,7 +4,7 @@
     <link rel="icon" href="/assets/avatar.jpg" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能体开发 - Toossssmart</title>
+    <title>agent - Toossssmart</title>
     <meta name="description" content="LangChain基础概念 LangChain是什么？ 是开发LLM相关业务的集大成者，是Python的第三方库，提供了各种API LangChain的功能（有哪些API）？ Prompts——提示词工程 Models——各类模型 History——管理会话历史记录 Indexes——分析管理各类文档 Chain——链式执行 Agent——构建智能体 现有LLM存在的问题： LLM不是实时的，不具...">
     <style>
         * {
@@ -461,10 +461,10 @@
         <main class="main-content">
             
 <article class="article-detail">
-    <h1 class="article-title">智能体开发</h1>
+    <h1 class="article-title">agent</h1>
 
     <div class="article-meta">
-        <span>2026-02-4</span>
+        <span>2026-02-04</span>
         
         <span>1 min read</span>
     </div>
@@ -583,56 +583,64 @@ for r in res:
     print(r.content,end=&quot;&quot;,flush=True)d
 </code></pre>
 <ul>
-<li>Embedding Models</li>
+<li>Prompt模板</li>
 </ul>
-<p>```python
-  from langchain_community.embeddings import DashScopeEmbeddings</p>
-<p>#默认text-embeddings-v1
-  model=DashScopeEmbeddings()</p>
-<p>#embed_query,embed_documents
-  print(model.embed_query("I love you"))
-  print(model.embed_documents(["我喜欢你","I love you","holly shit"]))
-  ```</p>
+<pre><code class="language-python">from langchain_community.embeddings import DashScopeEmbeddings
+
+
+#默认text-embeddings-v1
+model=DashScopeEmbeddings()
+
+
+#embed_query,embed_documents
+print(model.embed_query(&quot;I love you&quot;))
+print(model.embed_documents([&quot;我喜欢你&quot;,&quot;I love you&quot;,&quot;holly shit&quot;]))
+</code></pre>
 <p><img alt="image-20260204180335027" src="C:\Users\24995\AppData\Roaming\Typora\typora-user-images\image-20260204180335027.png" /></p>
 <h2 id="prompt">prompt优化</h2>
 <ul>
 <li>通用提示词模板</li>
 </ul>
-<p>```python
-  from langchain_core.prompts import PromptTemplate
-  from langchain_community.llms.tongyi import Tongyi</p>
-<p>#这种方式生成的是Runable类型对象，可以用于chain中，字符串注入方式则不可
-  prompt_template=PromptTemplate.from_template(
-    "我的邻居姓{lastname}，刚生了一个{gender}，你帮我起个名字，简单回答。"
-  )
-  #prompt_text=prompt_template.format(lastname="张",gender="女")</p>
-<p>chain=prompt_template|model
-  res=chain.invoke(input="{"lastname":"张","gender":"女"}")
-  print(res)
-  ```</p>
+<pre><code class="language-python">from langchain_core.prompts import PromptTemplate
+from langchain_community.llms.tongyi import Tongyi
+
+
+#这种方式生成的是Runable类型对象，可以用于chain中，字符串注入方式则不可
+prompt_template=PromptTemplate.from_template(
+    &quot;我的邻居姓{lastname}，刚生了一个{gender}，你帮我起个名字，简单回答。&quot;
+)
+#prompt_text=prompt_template.format(lastname=&quot;张&quot;,gender=&quot;女&quot;)
+
+chain=prompt_template|model
+res=chain.invoke(input=&quot;{&quot;lastname&quot;:&quot;张&quot;,&quot;gender&quot;:&quot;女&quot;}&quot;)
+print(res)
+</code></pre>
 <ul>
 <li>Fewshot提示词模板</li>
 </ul>
-<p>```python
-  from langchain_core.prompts import FewShotPromptTemplate,PromptTemplate
-  from langchain_community.llms.tongyi import Tongyi 
-  example_template=PromptTemplate.from_template("单词：{word},反义词：{antonym}")
-  example_data=[
-      {"word":"大","antonym":"小"},
-      {"word":"上","antonym":"下"}
-  ]</p>
-<p>few_shot_template=FewShotTemplate(
+<pre><code class="language-python">from langchain_core.prompts import FewShotPromptTemplate,PromptTemplate
+from langchain_community.llms.tongyi import Tongyi 
+example_template=PromptTemplate.from_template(&quot;单词：{word},反义词：{antonym}&quot;)
+example_data=[
+    {&quot;word&quot;:&quot;大&quot;,&quot;antonym&quot;:&quot;小&quot;},
+    {&quot;word&quot;:&quot;上&quot;,&quot;antonym&quot;:&quot;下&quot;}
+]
+
+few_shot_template=FewShotTemplate(
     example_prompt=example_template,
-      example=example_data,
-      prefix="告知我单词的反义词，我提供如下的示例：",
-      suffix="基于前面的示例告诉我，{input_word}的反义词是？",
-      input_variables=['input_word']
-  )</p>
-<p>prompt_text=few_shot_template.invoke(input={"左"}).toString()</p>
-<p>model=Tongyi(model="qwen-max")</p>
-<p>res=model.invoke(input=prompt_text)
-  print(res)
-  ```</p>
+    example=example_data,
+    prefix=&quot;告知我单词的反义词，我提供如下的示例：&quot;,
+    suffix=&quot;基于前面的示例告诉我，{input_word}的反义词是？&quot;,
+    input_variables=['input_word']
+)
+
+prompt_text=few_shot_template.invoke(input={&quot;左&quot;}).toString()
+
+model=Tongyi(model=&quot;qwen-max&quot;)
+
+res=model.invoke(input=prompt_text)
+print(res)
+</code></pre>
     </div>
 </article>
 
