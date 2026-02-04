@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head >
+<head>
     <link rel="icon" href="/assets/avatar.jpg" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog - Toossssmart</title>
-    <meta name="description" content="革命尚未成功，同志仍需努力">
+    <title>智能体开发 - Toossssmart</title>
+    <meta name="description" content="LangChain基础概念 LangChain是什么？ 是开发LLM相关业务的集大成者，是Python的第三方库，提供了各种API LangChain的功能（有哪些API）？ Prompts——提示词工程 Models——各类模型 History——管理会话历史记录 Indexes——分析管理各类文档 Chain——链式执行 Agent——构建智能体 现有LLM存在的问题： LLM不是实时的，不具...">
     <style>
         * {
             margin: 0;
@@ -67,7 +67,6 @@
             transition: color 0.2s;
         }
 
-        /* 顶部导航 */
         .navbar {
             background: var(--bg-primary);
             border-bottom: 1px solid var(--border-color);
@@ -110,7 +109,6 @@
             color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
-            position: relative;
             padding: 4px 0;
         }
 
@@ -119,7 +117,6 @@
             color: var(--primary-color);
         }
 
-        /* 主布局 */
         .main-layout {
             max-width: 1400px;
             margin: 64px auto 0;
@@ -130,14 +127,13 @@
             min-height: calc(100vh - 64px);
         }
 
-        /* 左侧边栏 */
         .sidebar {
             position: sticky;
             top: 104px;
             height: fit-content;
         }
 
-            .profile-card {
+        .toc-card {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -145,193 +141,60 @@
             box-shadow: var(--shadow-sm);
         }
 
-        .avatar {
-            width: 72px;
-            height: 72px;
-            margin: 0 auto 16px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: white;
+        .toc-title {
+            font-size: 14px;
             font-weight: 600;
-        }
-
-        .profile-name {
-            text-align: center;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .profile-title {
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-secondary);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 16px;
         }
 
-        .profile-bio {
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-item {
+            margin-bottom: 8px;
+        }
+
+        .toc-link {
+            display: block;
             font-size: 13px;
             color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .profile-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            display: block;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-tertiary);
-        }
-
-        .social-links {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 16px;
-        }
-
-        .social-link {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            font-size: 14px;
+            padding: 6px 8px;
+            border-radius: 6px;
             transition: all 0.2s;
+            line-height: 1.5;
         }
 
-        .social-link:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: translateY(-2px);
+        .toc-link:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-color);
         }
 
-        /* 主内容区 */
+        .toc-link.active {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .toc-level-2 {
+            padding-left: 8px;
+        }
+
+        .toc-level-3 {
+            padding-left: 20px;
+        }
+
+        .toc-level-4 {
+            padding-left: 32px;
+        }
+
         .main-content {
             min-width: 0;
         }
 
-        /* 文章列表 */
-        .article-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .article-card {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .article-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--primary-color);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .article-card:hover {
-            border-color: var(--primary-color);
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
-        }
-
-        .article-card:hover::before {
-            opacity: 1;
-        }
-
-        .article-card a {
-            display: block;
-        }
-
-        .article-card-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-            line-height: 1.4;
-            letter-spacing: -0.3px;
-        }
-
-        .article-card-excerpt {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.7;
-            margin-bottom: 16px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .article-card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .article-meta {
-            display: flex;
-            gap: 16px;
-            color: var(--text-tertiary);
-            font-size: 13px;
-            font-family: var(--font-mono);
-        }
-
-        .article-card-tags {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .article-card-tag {
-            font-size: 12px;
-            color: var(--primary-color);
-            background: var(--primary-light);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 500;
-        }
-
-        /* 文章详情 */
         .article-detail {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -366,7 +229,6 @@
             color: var(--text-primary);
         }
 
-        /* Markdown样式 - 程序员风格 */
         .markdown-body {
             font-family: var(--font-sans);
         }
@@ -382,6 +244,7 @@
             font-weight: 700;
             line-height: 1.3;
             letter-spacing: -0.3px;
+            scroll-margin-top: 80px;
         }
 
         .markdown-body h1 {
@@ -452,7 +315,6 @@
 
         .markdown-body a {
             color: var(--primary-color);
-            text-decoration: none;
             border-bottom: 1px solid transparent;
             transition: border-color 0.2s;
         }
@@ -467,6 +329,7 @@
             border-radius: 8px;
             margin: 24px 0;
             box-shadow: var(--shadow-md);
+            display: block;
         }
 
         .markdown-body table {
@@ -493,28 +356,6 @@
             background: var(--bg-secondary);
         }
 
-        /* 返回按钮 */
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            color: var(--primary-color);
-            font-size: 14px;
-            font-weight: 500;
-            padding: 8px 0;
-            margin-bottom: 24px;
-            transition: transform 0.2s;
-        }
-
-        .back-link:hover {
-            transform: translateX(-4px);
-        }
-
-        .back-link::before {
-            content: '←';
-            margin-right: 8px;
-        }
-
-        /* 页脚 */
         .footer {
             text-align: center;
             padding: 32px 24px;
@@ -529,7 +370,6 @@
             border-bottom-color: var(--primary-color) !important;
         }
 
-        /* 响应式 */
         @media (max-width: 1024px) {
             .main-layout {
                 grid-template-columns: 1fr;
@@ -538,26 +378,6 @@
 
             .sidebar {
                 position: static;
-            }
-
-            .profile-card {
-                display: grid;
-                grid-template-columns: auto 1fr;
-                gap: 24px;
-                align-items: center;
-            }
-
-            .avatar {
-                margin: 0;
-            }
-
-            .profile-name,
-            .profile-title {
-                text-align: left;
-            }
-
-            .profile-stats {
-                grid-column: 1 / -1;
             }
         }
 
@@ -577,27 +397,8 @@
             .article-title {
                 font-size: 22px;
             }
-
-            .profile-card {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .avatar {
-                margin: 0 auto 16px;
-            }
-
-            .profile-name,
-            .profile-title {
-                text-align: center;
-            }
-
-            .social-links {
-                justify-content: center;
-            }
         }
 
-        /* 滚动条美化 */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -616,7 +417,6 @@
             background: var(--text-tertiary);
         }
 
-        /* 选中文本样式 */
         ::selection {
             background: var(--primary-light);
             color: var(--text-primary);
@@ -637,93 +437,204 @@
     </nav>
 
     <div class="main-layout">
-        <!-- 左侧边栏 -->
         <aside class="sidebar">
-            <div class="profile-card" style="text-align: center;"> <img src="/assets/avatar.jpg"
-                     alt="Avatar"
-                     class="avatar"
-                     style="object-fit: cover; width: 72px; height: 72px; border-radius: 50%; display: block; margin: 0 auto 16px;">
-
-                <h2 class="profile-name">smart</h2>
-                <p class="profile-title">Have a good Day</p>
-
-                <div class="profile-bio" style="text-align: center;">
-                    革命尚未成功，同志仍需努力
-                </div>
-
-                <div class="profile-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">3</span>
-                        <span class="stat-label">Posts</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">2026</span>
-                        <span class="stat-label">Year</span>
-                    </div>
-                </div>
-
-                <div class="social-links" style="justify-content: center;"> <a href="https://github.com/toossmart" class="social-link" title="GitHub">GH</a>
-                    <a href="mailto:toossssmart@gmail.com" class="social-link" title="Email">@</a>
-                </div>
+            <div class="toc-card">
+                <div class="toc-title">Table of Contents</div>
+                <ul class="toc-list">
+                    
+                    <li class="toc-item toc-level-2">
+                        <a href="#langchain" class="toc-link">LangChain基础概念</a>
+                    </li>
+                    
+                    <li class="toc-item toc-level-2">
+                        <a href="#langchain_1" class="toc-link">LangChain三种模型代码示例</a>
+                    </li>
+                    
+                    <li class="toc-item toc-level-2">
+                        <a href="#prompt" class="toc-link">prompt优化</a>
+                    </li>
+                    
+                </ul>
             </div>
         </aside>
 
-        <!-- 主内容区 -->
         <main class="main-content">
             
-Blog
+<article class="article-detail">
+    <h1 class="article-title">智能体开发</h1>
 
-<h1 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; letter-spacing: -0.3px;">
-    Latest Posts
-</h1>
-
-
-<div class="article-list">
-    
-    <div class="article-card">
-        <a href="posts/agent.html">
-            <h3 class="article-card-title">智能体开发</h3>
-            <p class="article-card-excerpt">LangChain基础概念 LangChain是什么？ 是开发LLM相关业务的集大成者，是Python的第三方库，提供了各种API LangChain的功能（有哪些API）？ Prompts——提示词工程 Models——各类模型 History——管理会话历史记录 Indexes——分析管理各类文档 Chain——链式执行 Agent——构建智能体 现有LLM存在的问题： LLM不是实时的，不具...</p>
-            <div class="article-card-footer">
-                <div class="article-meta">
-                    <span>2026-02-4</span>
-                    
-                </div>
-                
-            </div>
-        </a>
+    <div class="article-meta">
+        <span>2026-02-4</span>
+        
+        <span>1 min read</span>
     </div>
-    
-    <div class="article-card">
-        <a href="posts/Java-learning.html">
-            <h3 class="article-card-title">Java学习心得</h3>
-            <p class="article-card-excerpt">Java易混淆的知识点 DTO、Entity、VO ​ DTO在controller层接收前端传出的数据，在service层封装成Entity。如果是对数据库的增删改，那将Entity传入mapper层，执行INSERT/UPDATE，后在controller层返回Result.success()，如果是对数据库的查询操作，那将Entity转化为VO：作用：数据脱敏（去掉密码）、格式化（日期转字符...</p>
-            <div class="article-card-footer">
-                <div class="article-meta">
-                    <span>2026-02-2</span>
-                    
-                </div>
-                
-            </div>
-        </a>
-    </div>
-    
-    <div class="article-card">
-        <a href="posts/about.html">
-            <h3 class="article-card-title">关于我</h3>
-            <p class="article-card-excerpt">你好！欢迎来到我的个人博客。 我是谁 我是一名不热爱生活的开发者。 技术栈 我主要使用以下技术： 编程语言：Python, Java, C++ Web开发：SpringBoot Mybatis 数据科学：NumPy, Pandas, TensorFlow, Openai 工具：Git, Docker, Linux 博客内容 在这个博客中，我会分享： 技术学习笔记 项目开发经验 工具使用心得 生活感...</p>
-            <div class="article-card-footer">
-                <div class="article-meta">
-                    <span>2026-02-1</span>
-                    
-                </div>
-                
-            </div>
-        </a>
-    </div>
-    
-</div>
 
+    <div class="article-content markdown-body">
+        <h2 id="langchain">LangChain基础概念</h2>
+<ul>
+<li>
+<p>LangChain是什么？</p>
+</li>
+<li>
+<p>是开发LLM相关业务的集大成者，是Python的第三方库，提供了各种API</p>
+</li>
+<li>
+<p>LangChain的功能（有哪些API）？</p>
+</li>
+<li>
+<p>Prompts——提示词工程</p>
+</li>
+<li>Models——各类模型</li>
+<li>History——管理会话历史记录</li>
+<li>Indexes——分析管理各类文档</li>
+<li>Chain——链式执行</li>
+<li>
+<p>Agent——构建智能体</p>
+</li>
+<li>
+<p>现有LLM存在的问题：</p>
+</li>
+<li>
+<p>LLM不是实时的，不具备更新知识的能力</p>
+</li>
+<li>专业知识领域知识缺乏，无法覆盖特定专业领域内部知识</li>
+<li>幻觉问题</li>
+<li>
+<p>数据安全</p>
+</li>
+<li>
+<p>RAG是什么？</p>
+</li>
+</ul>
+<p><img alt="image-20260204153525857" src="C:\Users\24995\AppData\Roaming\Typora\typora-user-images\image-20260204153525857.png" /></p>
+<ul>
+<li>RAG工作分为两条线：<ul>
+<li>在线流程：用户提问</li>
+<li>离线流程：知识库预处理</li>
+</ul>
+</li>
+</ul>
+<p><img alt="image-20260204154639558" src="C:\Users\24995\AppData\Roaming\Typora\typora-user-images\image-20260204154639558.png" /></p>
+<ul>
+<li>
+<p>通过余弦相似度计算向量是否匹配</p>
+</li>
+<li>
+<p>LangChain的三种模型：</p>
+</li>
+<li>
+<p>LLMs：大参数、海量文本的Transformer架构模型，用于理解生成自然语言。服务于文本生成场景</p>
+</li>
+<li>聊天模型：Chat Models，专为聊天对话优化的LLMs</li>
+<li>文本嵌入模型：Embedding Models，文本作为输入，得到文本向量</li>
+</ul>
+<h2 id="langchain_1">LangChain三种模型代码示例</h2>
+<ul>
+<li>LLMs</li>
+</ul>
+<pre><code class="language-python">from langchian_community.llms.tongyi import Tongyi
+
+model=Tongyi(
+    model=&quot;qwen-max&quot;
+)
+#invoke输出，一次性输出
+res=model.invoke(input=&quot;What can you do? Answer simply.&quot;)
+print(res)
+res=model.stream(input=&quot;What can you do? Answer simply.&quot;)
+
+for chunk in res:
+    print(chunk,end=&quot;&quot;,flush=True)
+</code></pre>
+<ul>
+<li>chat_models</li>
+</ul>
+<pre><code class="language-python">from langchain_community.chat_models.tongyi import ChatTongyi
+
+#元组形式不需要该包
+from langchain_core.message import HumanMessage,AIMessage,SystemMessage
+
+models=ChatTongyi(model=&quot;qwen3-max&quot;)
+
+
+#静态写法，直接得到Message类
+message=[
+    SystemMessage(content=&quot;你是一名边塞诗人，只输出诗句，不输出其他内容&quot;),
+    HumanMessage(content=&quot;为我写一首唐诗&quot;),
+    AIMessage(content=&quot;大漠孤烟直，长河落日圆。&quot;),
+    HumanMessage(content=&quot;以上一首诗的格式，再写一首。&quot;)
+]
+
+#或者利用元组，动态写法，运行时LangChain将其转换为Message类
+#避免导包，写法简单
+#**支持变量注入**
+message=[
+    (&quot;system&quot;,&quot;你是一名边塞诗人，只输出诗句，不输出其他内容&quot;),
+    (&quot;human&quot;,&quot;为我写一首唐诗&quot;)
+    (&quot;ai&quot;,&quot;大漠孤烟直，长河落日圆。&quot;)   
+    (&quot;human&quot;,&quot;以上一首诗的格式，再写一首。&quot;)
+
+]
+
+res=model.stream(input=message)
+
+
+#聊天模型需要content
+for r in res:
+    print(r.content,end=&quot;&quot;,flush=True)d
+</code></pre>
+<ul>
+<li>Embedding Models</li>
+</ul>
+<p>```python
+  from langchain_community.embeddings import DashScopeEmbeddings</p>
+<p>#默认text-embeddings-v1
+  model=DashScopeEmbeddings()</p>
+<p>#embed_query,embed_documents
+  print(model.embed_query("I love you"))
+  print(model.embed_documents(["我喜欢你","I love you","holly shit"]))
+  ```</p>
+<p><img alt="image-20260204180335027" src="C:\Users\24995\AppData\Roaming\Typora\typora-user-images\image-20260204180335027.png" /></p>
+<h2 id="prompt">prompt优化</h2>
+<ul>
+<li>通用提示词模板</li>
+</ul>
+<p>```python
+  from langchain_core.prompts import PromptTemplate
+  from langchain_community.llms.tongyi import Tongyi</p>
+<p>#这种方式生成的是Runable类型对象，可以用于chain中，字符串注入方式则不可
+  prompt_template=PromptTemplate.from_template(
+    "我的邻居姓{lastname}，刚生了一个{gender}，你帮我起个名字，简单回答。"
+  )
+  #prompt_text=prompt_template.format(lastname="张",gender="女")</p>
+<p>chain=prompt_template|model
+  res=chain.invoke(input="{"lastname":"张","gender":"女"}")
+  print(res)
+  ```</p>
+<ul>
+<li>Fewshot提示词模板</li>
+</ul>
+<p>```python
+  from langchain_core.prompts import FewShotPromptTemplate,PromptTemplate
+  from langchain_community.llms.tongyi import Tongyi 
+  example_template=PromptTemplate.from_template("单词：{word},反义词：{antonym}")
+  example_data=[
+      {"word":"大","antonym":"小"},
+      {"word":"上","antonym":"下"}
+  ]</p>
+<p>few_shot_template=FewShotTemplate(
+    example_prompt=example_template,
+      example=example_data,
+      prefix="告知我单词的反义词，我提供如下的示例：",
+      suffix="基于前面的示例告诉我，{input_word}的反义词是？",
+      input_variables=['input_word']
+  )</p>
+<p>prompt_text=few_shot_template.invoke(input={"左"}).toString()</p>
+<p>model=Tongyi(model="qwen-max")</p>
+<p>res=model.invoke(input=prompt_text)
+  print(res)
+  ```</p>
+    </div>
+</article>
 
         </main>
     </div>
@@ -731,20 +642,10 @@ Blog
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-left">
-                &copy; 2026 <a href="index.html">smart</a>.
-                <span class="desktop-only">Hexo <span style="color: var(--primary-color);">♥</span> <span>JinJia2</span></span>
+                &copy; 2026 <a href="../index.html">smart</a>.
+                 <span class="desktop-only">Hexo <span style="color: var(--primary-color);">♥</span> <span>JinJia2</span></span>
             </div>
 
-            
-            <div class="footer-right">
-                <span class="friends-label">Friends</span>
-                
-                    <a href="https://s1ain.com" target="_blank" class="friend-link">
-                        s1ain
-                    </a>
-                    
-                
-            </div>
             
         </div>
     </footer>
