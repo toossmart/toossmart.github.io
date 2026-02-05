@@ -454,6 +454,10 @@
                         <a href="#prompt" class="toc-link">prompt优化</a>
                     </li>
                     
+                    <li class="toc-item toc-level-2">
+                        <a href="#chain" class="toc-link">Chain的使用</a>
+                    </li>
+                    
                 </ul>
             </div>
         </aside>
@@ -639,6 +643,130 @@ prompt_text=few_shot_template.invoke(input={&quot;左&quot;}).toString()
 model=Tongyi(model=&quot;qwen-max&quot;)
 
 res=model.invoke(input=prompt_text)
+print(res)
+</code></pre>
+<ul>
+<li>format VS invoke</li>
+</ul>
+<p><img alt="image-20260205111156276" src="/assets/image-20260205111156276.png" /></p>
+<p><img alt="image-20260205111257596" src="/assets/image-20260205111257596.png" /></p>
+<pre><code class="language-python">from langchain_core.prompts import PromptTemplate
+
+template=PromptTemplate.from_template(&quot;我的邻居是：{lastname}，最喜欢：{hobby}&quot;)
+res=template.format(lastname=&quot;张晓梅&quot;,hobby=&quot;钓鱼&quot;)
+print(res)
+
+res2=template.invoke({&quot;lastname&quot;:&quot;喜刷刷&quot;,&quot;hobby&quot;:&quot;洗刷刷&quot;})
+print(res2,type(res2))
+</code></pre>
+<ul>
+<li>ChatPromptTemplate</li>
+</ul>
+<pre><code class="language-python">from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
+from langchain_community.chat_models.tongyi import ChatTongyi
+
+chat_prompt_template=ChatPromptTemplate(
+    [
+        (&quot;system&quot;,&quot;你是一个边塞诗人。&quot;),
+        MessagesPlaceholder(&quot;history&quot;),
+        (&quot;human&quot;,&quot;请再写一首唐诗。&quot;),
+    ]
+)
+history_data=[
+    (&quot;human&quot;,&quot;请你写一首诗&quot;),
+    (&quot;ai&quot;,&quot;征蓬出汉塞，归雁入胡天。&quot;),
+    (&quot;human&quot;,&quot;请再写一首&quot;),
+    (&quot;ai&quot;,&quot;大漠孤烟直，长河落日圆。&quot;)
+]
+prompt_text=chat_prompt_template.invoke({&quot;history&quot;:history_data}).to_string()
+
+print(prompt_text)
+model=ChatTongyi(model=&quot;qwen3-max&quot;)
+res=model.invoke(prompt_text)
+print(res.content)
+</code></pre>
+<h2 id="chain">Chain的使用</h2>
+<ul>
+<li>Runnable子类才可加入链</li>
+</ul>
+<p><img alt="image-20260205122951886" src="/assets/image-20260205122951886.png" /></p>
+<ul>
+<li>用invoke或stream执行，上一组件的输出作为下一组件的输出</li>
+</ul>
+<pre><code class="language-python">from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
+from langchain_community.chat_models.tongyi import ChatTongyi
+
+chat_prompt_template=ChatPromptTemplate(
+    [
+        (&quot;system&quot;,&quot;你是一个边塞诗人。&quot;),
+        MessagesPlaceholder(&quot;history&quot;),
+        (&quot;human&quot;,&quot;请再写一首唐诗。&quot;),
+    ]
+)
+
+history_data=[
+    (&quot;human&quot;,&quot;请你写一首诗&quot;),
+    (&quot;ai&quot;,&quot;征蓬出汉塞，归雁入胡天。&quot;),
+    (&quot;human&quot;,&quot;请再写一首&quot;),
+    (&quot;ai&quot;,&quot;大漠孤烟直，长河落日圆。&quot;)
+]
+model=ChatTongyi(model=&quot;qwen3-max&quot;)
+
+chain=chat_prompt_template|model
+
+#res=chain.invoke({&quot;history&quot;:history_data})
+#print(res.content)
+
+res=chain.stream({&quot;history&quot;:history_data})
+for r in res:
+    print(r.content,end=&quot;&quot;,flush=True)
+</code></pre>
+<ul>
+<li>Runnable接口</li>
+<li>上一链的输出类型需要和下一链的输入类型相同</li>
+<li>model的输入：PromptValue、str、Sequence</li>
+<li>StrOutputParser:字符串解析器，也为Runnable的子类，可以作为model的输入（AIMessage）</li>
+<li>JsonOutputParser:Json解析器，也是Runnable的子类，可以作为Prompt的输入</li>
+</ul>
+<pre><code class="language-python">from langchain_core.output_parsers import StrOutputParser,JsonOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain_community.chat_models.tongyi import ChatTongyi
+
+model = ChatTongyi(model=&quot;qwen3-max&quot;)
+prompt1=PromptTemplate.from_template(
+    &quot;我邻居姓{lastname}，刚生了{gender}，请起名，只输出名字,并且封装为JSON格式返回给我，要求key是name，value是名字。&quot;
+)
+prompt2=PromptTemplate.from_template(
+    &quot;有一个名字{name}，请简单输出其含义。&quot;
+)
+parser=StrOutputParser()
+json_parser=JsonOutputParser()
+chain=prompt1|model|json_parser|prompt2|model|parser
+res=chain.invoke({&quot;lastname&quot;:&quot;张&quot;,&quot;gender&quot;:&quot;女儿&quot;})
+print(res)
+</code></pre>
+<ul>
+<li>可将函数加入链-RunnableLambda-自定义函数</li>
+</ul>
+<pre><code class="language-python">from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain_community.chat_models.tongyi import ChatTongyi
+from langchain_core.runnables import RunnableLambda
+
+model = ChatTongyi(model=&quot;qwen3-max&quot;)
+
+my_func=RunnableLambda(lambda ai_msg:{&quot;name&quot;:ai_msg.content})
+prompt1=PromptTemplate.from_template(
+    &quot;我邻居姓{lastname}，刚生了{gender}，请起名，只输出名字。&quot;
+)
+prompt2=PromptTemplate.from_template(
+    &quot;有一个名字{name}，请简单输出其含义。&quot;
+)
+parser=StrOutputParser()
+
+#也可直接传参，__or__重写，函数自动转换成Runnable
+chain=prompt1|model|(lambda ai_msg:{&quot;name&quot;:ai_msg.content})|prompt2|model|parser
+res=chain.invoke({&quot;lastname&quot;:&quot;张&quot;,&quot;gender&quot;:&quot;女儿&quot;})
 print(res)
 </code></pre>
     </div>
