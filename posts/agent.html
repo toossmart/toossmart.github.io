@@ -458,6 +458,18 @@
                         <a href="#chain" class="toc-link">Chain的使用</a>
                     </li>
                     
+                    <li class="toc-item toc-level-2">
+                        <a href="#document-loaders" class="toc-link">Document loaders文档加载</a>
+                    </li>
+                    
+                    <li class="toc-item toc-level-2">
+                        <a href="#vector-stores" class="toc-link">Vector stores向量存储</a>
+                    </li>
+                    
+                    <li class="toc-item toc-level-2">
+                        <a href="#_1" class="toc-link">基于向量检索构建提示词</a>
+                    </li>
+                    
                 </ul>
             </div>
         </aside>
@@ -767,6 +779,392 @@ parser=StrOutputParser()
 #也可直接传参，__or__重写，函数自动转换成Runnable
 chain=prompt1|model|(lambda ai_msg:{&quot;name&quot;:ai_msg.content})|prompt2|model|parser
 res=chain.invoke({&quot;lastname&quot;:&quot;张&quot;,&quot;gender&quot;:&quot;女儿&quot;})
+print(res)
+</code></pre>
+<ul>
+<li>临时会话记忆</li>
+</ul>
+<pre><code class="language-python">from langchain_community.chat_models import ChatTongyi
+from langchain_core.prompts import ChatPromptTemplate,MessagePlaceholder
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableWithMessageHistroy
+from langchain_core.chat_history import InMemoryChatMessageHistory
+
+model=ChatTongyi(model=&quot;qwen3-max&quot;)
+prompt=ChatPromptTemplate(
+    [
+        (&quot;system&quot;,&quot;你需要根据历史会话回应用户问题。&quot;),
+        MessagePlaceholder(&quot;chat_history&quot;),
+        (&quot;human&quot;,&quot;请回答如下问题：{input}&quot;)
+    ]
+)
+str_parser=StrOutputParser()
+
+def print_prompt(full_prompt):
+    print(&quot;=&quot;*20,full_prompt.to_string(),&quot;=&quot;*20)
+    return full_prompt
+
+base_chain=prompt|print_prompt|model|str_parser
+
+store={}
+def get_history(session_id)：
+    if session_id not in stroe:
+        store[session_id]=InMemoryChatMessageHistory()
+    return store[session_id]
+
+
+
+conversation_chain=RunnableWithMEssageHistory(
+    base_chain,
+    get_history,
+    input_message_key=&quot;input&quot;,
+    history_message_key=&quot;chat_history&quot;
+)
+
+
+if __name__=&quot;__main__&quot;:
+    session_config={
+        &quot;configruable&quot;:{
+            &quot;session_id&quot;:&quot;user_001&quot;
+        }
+    }
+
+    res=conversation_chain.invoke({&quot;input&quot;:&quot;小明有两只猫&quot;},session_config)
+    print(&quot;第一次执行:&quot;,res)
+    res=conversation_chain.invoke({&quot;input&quot;:&quot;小黄有两只狗&quot;},session_config)
+    print(&quot;第二次执行&quot;,res)
+    res=conversation_chain.invoke({&quot;input&quot;:&quot;他们一共几只宠物&quot;},session_config)
+    print(&quot;第三次执行&quot;,res)
+</code></pre>
+<ul>
+<li>长期会话记忆</li>
+</ul>
+<pre><code class="language-python">import os,json
+from typing import Sequence
+
+from langchain_community.chat_models import ChatTongyi
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.messages import message_to_dict,messages_from_dict,BaseMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables import RunnableWithMessageHistory
+
+
+class FileChatMessageHistory(BaseChatMessageHistory):
+    def __init__(self,session_id,storage_path):
+        self.session_id=session_id
+        self.storage_path=storage_path
+        self.file_path=os.path.join(self.storage_path,self.session_id)
+
+        os.makedirs(os.path.dirname(self.file_path),exist_ok=True)
+
+    def add_messages(self,messages:Sequence[BaseMessage])-&gt;None:
+        all_messages=list(self.messages)
+        all_messages.extend(messages)
+
+        new_messages=[]
+        for message in all_messages:
+            d=message_to_dict(message)
+            new_messages.append(d)
+
+        with open(self.file_path,'w',encoding=&quot;utf-8&quot;) as f:
+            json.dump(new_messages,f)
+
+
+    #将方法伪装成属性
+    @property 
+    def messages(self)-&gt;list[BaseMessage]:
+
+        try:
+            with open(self.file_path,'r',encoding=&quot;utf-8&quot;) as f:
+                message_data=json.load(f)
+                return messages_from_dict(message_data)
+        except FileNotFoundError:
+            return []
+
+
+    def clear(self)-&gt;None:
+        with open(self.file_path,'w',encoding=&quot;utf-8&quot;) as f:
+            json.dump([],f)
+
+
+
+
+
+model=ChatTongyi(model=&quot;qwen3-max&quot;)
+# prompt=PromptTemplate.from_template(
+#     &quot;你需要根据历史会话回应用户问题。历史对话：{chat_history},用户提问：{input},请回答。&quot;
+# )
+
+
+prompt=ChatPromptTemplate.from_messages(
+    [
+        (&quot;system&quot;,&quot;你需要根据历史会话回应用户问题。&quot;),
+        MessagesPlaceholder(&quot;chat_history&quot;),
+        (&quot;human&quot;,&quot;请回答如下问题：{input}&quot;)
+    ]
+)
+str_parser=StrOutputParser()
+
+
+
+def print_prompt(full_prompt):
+    print(&quot;=&quot;*20,full_prompt.to_string(),&quot;=&quot;*20)
+    return full_prompt
+
+
+
+def get_history(session_id):
+    return FileChatMessageHistory(session_id,&quot;./chat_history&quot;)
+
+base_chain=prompt|print_prompt|model|str_parser
+
+conversation_chain=RunnableWithMessageHistory(
+    base_chain,
+    get_history,
+    input_messages_key=&quot;input&quot;,
+    history_messages_key=&quot;chat_history&quot;
+)
+
+if __name__==&quot;__main__&quot;:
+    session_config={
+        &quot;configurable&quot;:{
+            &quot;session_id&quot;:&quot;user_001&quot;
+        }
+    }
+
+    # res=conversation_chain.invoke({&quot;input&quot;:&quot;小明有两只猫&quot;},session_config)
+    # print(&quot;第一次执行:&quot;,res)
+    # res=conversation_chain.invoke({&quot;input&quot;:&quot;小黄有两只狗&quot;},session_config)
+    # print(&quot;第二次执行&quot;,res)
+    res=conversation_chain.invoke({&quot;input&quot;:&quot;他们一共几只宠物&quot;},session_config)
+    print(&quot;第三次执行&quot;,res)
+</code></pre>
+<h2 id="document-loaders">Document loaders文档加载</h2>
+<ul>
+<li>load():一次性加载</li>
+<li>lazy_load()：流式加载</li>
+<li>
+<p>CSVLoader、JSONLoader、PDFLoader</p>
+</li>
+<li>
+<p>CSVLoader</p>
+</li>
+</ul>
+<pre><code class="language-python">from langchain_community.document_loaders import CSVLoader
+
+loader = CSVLoader(
+    file_path=&quot;./data/stu.csv&quot;,
+    csv_args={
+        &quot;delimiter&quot;: &quot;,&quot;, #指定分隔符
+        &quot;quotechar&quot;:'&quot;', #指定分隔符文本的引号包围是单引号还是双引号
+        # &quot;fieldnames&quot;:['a','b','c'] 表头名字，有表头则不用    
+    },
+    encoding=&quot;utf-8&quot;
+)
+
+#document=loader.load()
+#print(document)
+
+#批量加载
+# documents = loader.load()
+# for doc in documents:
+#     print(doc)
+
+#懒加载
+for doc in loader.lazy_load():
+    print(doc)
+</code></pre>
+<ul>
+<li>
+<p>JSONLoader</p>
+</li>
+<li>
+<p><code>jq_schema</code></p>
+<ul>
+<li>.表示整个JSON对象</li>
+<li>[]表示数组</li>
+<li>.name表示抽取名字</li>
+<li>.hobby[1]表示抽取"跳"</li>
+<li>.other.addr表示抽取地址深圳</li>
+<li>.[].name列表json </li>
+<li>json_lines=True</li>
+</ul>
+</li>
+<li>
+<p><code>text_content=False #告知JSONLoader 抽取内容不是字符串</code></p>
+</li>
+<li></li>
+</ul>
+<p><img alt="image-20260207211843797" src="/assets/image-20260207211843797.png" /></p>
+<ul>
+<li>
+<p>TextLoader</p>
+</li>
+<li>
+<p><code>RecursiveCharacterTexSplitter</code>:文本分割器</p>
+</li>
+</ul>
+<pre><code class="language-python">from langchain_community.documnet_loaders import TextLoader
+from langchain_text_splitters import RecursiveCharacterTexSplitter
+
+loader=TextLoader(
+    ./data/python.txt,
+    encoding=&quot;utf-8&quot;
+)
+
+docs=loader.load()
+
+splitter=RecursiveCharacterTextSplitter(
+    chunk_size=500, #分段最大字符数
+    chunk_overlap=50, #分段见允许重叠字符数
+    sparators=[&quot;\n\n&quot;,&quot;\n&quot;,&quot;。&quot;,&quot;！&quot;,&quot;？&quot;,&quot;.&quot;,&quot;!&quot;,&quot;?&quot;,&quot; &quot;],
+    length_function=len,
+)
+split_docs=splitter.split_documents(docs)
+print(len(split_docs))
+for doc in split_docs:
+    print(doc)
+</code></pre>
+<ul>
+<li>PyPDFLoader</li>
+</ul>
+<pre><code class="language-python">from langchain_community.document_loaders import PyPDFLoader
+
+loader=PyPDFLoader(
+    file_path=&quot;./data/saa.pdf&quot;,
+    mode=&quot;single&quot;#不管有多少页，只返回一个document对象，默认page模式
+    password=&quot;123&quot;
+)
+doc=loader.load()
+print(doc)
+</code></pre>
+<h2 id="vector-stores">Vector stores向量存储</h2>
+<pre><code class="language-python">from langchain_core.vectorstores import InMemoryVectorStore
+from  langchain_community.embeddings import DashScopeEmbeddings
+from langchain_community.document_loaders import CSVLoader
+from langchain_chroma import Chroma
+
+#内存存储
+# vector_store = InMemoryVectorStore(
+#     embedding=DashScopeEmbeddings()
+# )
+
+vector_store=Chroma(
+    collection_name=&quot;test&quot;,
+    embedding_function=DashScopeEmbeddings(),
+    persist_directory=&quot;./chroma_db&quot;
+)
+
+loader=CSVLoader(
+    file_path=&quot;./data/stu.csv&quot;,
+    encoding=&quot;utf-8&quot;,
+    source_column=&quot;name&quot;
+)
+doc=loader.load()
+# print(doc)
+
+vector_store.add_documents(
+    documents=doc,
+    ids=[&quot;id&quot;+str(i) for i in range(1,len(doc)+1)],
+)
+vector_store.delete(&quot;id1&quot;)
+result=vector_store.similarity_search(
+    &quot;17&quot;,
+    1,
+    filter={&quot;name&quot;:&quot;张三&quot;}
+)
+print(result)
+</code></pre>
+<h2 id="_1">基于向量检索构建提示词</h2>
+<pre><code class="language-python">from langchain_community.chat_models.tongyi import ChatTongyi
+from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.prompts import ChatPromptTemplate
+from  langchain_core.output_parsers import StrOutputParser
+
+model = ChatTongyi(model=&quot;qwen3-max&quot;)
+prompt = ChatPromptTemplate(
+    [
+        (&quot;system&quot;,&quot;以我提供的资料为主，提供简单专业的回答，参考资料:{context}.&quot;),
+        (&quot;user&quot;,&quot;用户提问：{input}&quot;)
+    ]
+)
+vector_store = InMemoryVectorStore(
+    embedding=DashScopeEmbeddings(model=&quot;text-embedding-v4&quot;)
+)
+
+vector_store.add_texts([&quot;减肥就要少吃多练&quot;,&quot;减肥要加强力量训练&quot;,&quot;跑步是个很好的运动&quot;])
+
+input_text=&quot;怎么减肥？&quot;
+
+result=vector_store.similarity_search(input_text,2)
+reference_text=&quot;[&quot;
+for doc in result:
+    reference_text+=doc.page_content
+reference_text+=&quot;]&quot;
+
+def print_prompt(prompt):
+    print(prompt.to_string())
+    print(&quot;=&quot;*20)
+    return prompt
+
+chain=prompt|print_prompt|model|StrOutputParser()
+
+res=chain.invoke({&quot;input&quot;: input_text,&quot;context&quot;: reference_text})
+print(res)
+</code></pre>
+<ul>
+<li>RunnablePassthrough</li>
+<li>将向量检索加入链</li>
+<li>as_retriever</li>
+</ul>
+<pre><code class="language-PY">from langchain_community.chat_models.tongyi import ChatTongyi
+from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_core.documents import Document
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.prompts import ChatPromptTemplate
+from  langchain_core.output_parsers import StrOutputParser
+
+model = ChatTongyi(model=&quot;qwen3-max&quot;)
+prompt = ChatPromptTemplate(
+    [
+        (&quot;system&quot;,&quot;以我提供的资料为主，提供简单专业的回答，参考资料:{context}.&quot;),
+        (&quot;user&quot;,&quot;用户提问：{input}&quot;)
+    ]
+)
+vector_store = InMemoryVectorStore(
+    embedding=DashScopeEmbeddings(model=&quot;text-embedding-v4&quot;)
+)
+
+vector_store.add_texts([&quot;减肥就要少吃多练&quot;,&quot;减肥要加强力量训练&quot;,&quot;跑步是个很好的运动&quot;])
+
+input_text=&quot;怎么减肥？&quot;
+
+#输入：用户输入。输出：向量库检索
+retriever=vector_store.as_retriever(search_kwargs={&quot;k&quot;:2})
+
+def print_prompt(prompt):
+    print(prompt.to_string())
+    print(&quot;=&quot;*20)
+    return prompt
+
+def format_func(docs:list[Document]):
+    if not docs:
+        return &quot;无参考资料&quot;
+    formatted_str=&quot;[&quot;
+    for doc in docs:
+        formatted_str+=doc.page_content
+    formatted_str+=&quot;]&quot;
+    return formatted_str
+
+
+chain=(
+    {&quot;input&quot;:RunnablePassthrough(), &quot;context&quot;:retriever|format_func}|prompt|print_prompt|model|StrOutputParser()
+)
+
+res=chain.invoke(input_text)
 print(res)
 </code></pre>
     </div>
